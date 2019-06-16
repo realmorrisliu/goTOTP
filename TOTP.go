@@ -1,17 +1,30 @@
-package main
+package goTOTP
 
 import (
 	"crypto/hmac"
+	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
 	"hash"
 )
 
-func GenerateTOTP(key string, time int64, returnDigits int, crypto func() hash.Hash) string {
+func GenerateTOTP(key string, time int64, returnDigits int, crypto string) string {
+	var cryptoFunc func() hash.Hash
+	switch crypto {
+	case "SHA256":
+		cryptoFunc = sha256.New
+	case "SHA512":
+		cryptoFunc = sha512.New
+	default:
+		cryptoFunc = sha1.New
+	}
+
 	s := fmt.Sprintf("%016x", time)
 	msg, _ := hex.DecodeString(s)
 	k, _ := hex.DecodeString(key)
-	h := hmacSha(crypto, k, msg)
+	h := hmacSha(cryptoFunc, k, msg)
 
 	DigitsPower := []int{1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000}
 
